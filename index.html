@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landy Bot</title>
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+    <div id="loader" class="loader-container">
+        <div class="spinner"></div>
+        <p>Cargando el negocio...</p>
+    </div>
+
+    <header id="header-negocio" style="display: none;">
+        <img id="logo-negocio" class="logo" src="" alt="Logo">
+        <h1 id="nombre-negocio"></h1>
+        <p id="eslogan-negocio"></p>
+        <div>
+            <span id="horario-negocio" class="info-badge"></span>
+            <span id="direccion-negocio" class="info-badge"></span>
+        </div>
+    </header>
+
+    <main class="container" id="catalogo"></main>
+
+    <div class="footer-pedido" id="footer-pedido">
+        <button class="btn-enviar-wa" onclick="enviarPedidoWhatsApp()">
+            <span>Ver Pedido (WhatsApp)</span>
+            <span id="total-pedido">$0.00</span>
+        </button>
+    </div>
+
+    <!-- ROBOT -->
+    <div class="landy-robot-container">
+        <div class="landy-avatar">
+            <div class="robot-ears"></div>
+            <div class="robot-head">
+                <div class="robot-eyes">
+                    <span class="eye"></span>
+                    <span class="eye"></span>
+                </div>
+                <div class="robot-mouth"></div>
+            </div>
+            <div class="robot-body">
+                <div class="robot-screen">🤖</div>
+            </div>
+        </div>
+        <p class="robot-saludo" id="robot-mensaje">¡Hola! Soy Landy Bot. Armá tu pedido y lo enviemos juntos por WhatsApp.</p>
+    </div>
+
+        <!-- BOTÓN FLOTANTE DE WHATSAPP (Para consultas directas) -->
+    <a href="#" id="btn-whatsapp-flotante" class="whatsapp-float" target="_blank">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER DE LA PÁGINA -->
+    <footer class="site-footer">
+        <p>© 2026 <span id="footer-nombre-negocio">Mi Negocio</span>. Todos los derechos reservados.</p>
+        <p class="creado-por">Creado con <span>Landy Bot</span> ⚡</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
