@@ -25,16 +25,22 @@
         </div>
     </header>
 
-    <main class="container" id="catalogo"></main>
-
-    <div class="footer-pedido" id="footer-pedido">
-        <button class="btn-enviar-wa" onclick="enviarPedidoWhatsApp()">
-            <span>Ver Pedido (WhatsApp)</span>
-            <span id="total-pedido">$0.00</span>
-        </button>
+    <!-- Buscador de productos -->
+    <div class="buscador-container">
+        <div class="buscador-wrapper">
+            <span class="buscador-icono">🔍</span>
+            <input 
+                type="text" 
+                id="input-busqueda" 
+                placeholder="Buscar productos..." 
+                oninput="filtrarCatalogo()"
+            />
+        </div>
     </div>
 
-    <!-- ROBOT -->
+    <main class="container" id="catalogo"></main>
+
+        <!-- ROBOT -->
     <div class="landy-robot-container">
         <div class="landy-avatar">
             <div class="robot-ears"></div>
@@ -52,6 +58,13 @@
         <p class="robot-saludo" id="robot-mensaje">¡Hola! Soy Landy Bot. Armá tu pedido y lo enviemos juntos por WhatsApp.</p>
     </div>
 
+    <div class="footer-pedido" id="footer-pedido">
+        <button class="btn-enviar-wa" onclick="abrirCheckout()">
+            <span>Finalizar Pedido</span>
+            <span id="total-pedido">$0.00</span>
+        </button>
+    </div>
+
         <!-- BOTÓN FLOTANTE DE WHATSAPP (Para consultas directas) -->
     <a href="#" id="btn-whatsapp-flotante" class="whatsapp-float" target="_blank">
         <i class="fa-brands fa-whatsapp"></i>
@@ -62,6 +75,79 @@
         <p>© 2026 <span id="footer-nombre-negocio">Mi Negocio</span>. Todos los derechos reservados.</p>
         <p class="creado-por">Creado con <span>Landy Bot</span> ⚡</p>
     </footer>
+
+    <!-- Modal de Checkout / Finalizar Pedido -->
+    <div id="modal-checkout" class="modal-container" style="display: none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <h3>Finalizar tu Pedido</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarCheckout()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Resumen rápido -->
+                <div class="resumen-checkout">
+                    <p>Subtotal Productos: <span id="chk-subtotal">$0</span></p>
+                    <p id="fila-envio">Envío a domicilio: <span id="chk-envio">$0</span></p>
+                    <p id="fila-descuento" style="display: none; color: #27ae60;">Descuento: -<span id="chk-descuento">$0</span></p>
+                    <h4 class="total-destacado">Total a pagar: <span id="chk-total">$0</span></h4>
+                    <p id="aviso-envio-gratis" class="aviso-gratis" style="display: none;">¡Felicidades! Tienes envío gratis 🎉</p>
+                </div>
+
+                <!-- Formulario -->
+                <form id="form-pedido" onsubmit="procesarYEnviar(event)">
+                    <div class="grupo-campo">
+                        <label for="txt-nombre">Tu Nombre *</label>
+                        <input type="text" id="txt-nombre" required placeholder="Ej: Juan Pérez">
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Método de Entrega *</label>
+                        <div class="opciones-flex">
+                            <label class="radio-card">
+                                <input type="radio" name="tipo_entrega" value="delivery" checked onchange="cambiarTipoEntrega('delivery')">
+                                <span>🛵 Delivery</span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="tipo_entrega" value="retiro" onchange="cambiarTipoEntrega('retiro')">
+                                <span>🏪 Retiro en Local</span>
+                            </label>
+                        </div>
+                        <!-- NUEVO ELEMENTO: Alerta dinámica para cuando no haya envíos disponibles -->
+                        <div id="aviso-no-envios" style="display: none; color: #e74c3c; font-size: 0.85rem; font-weight: bold; margin-top: 8px;"></div>
+                    </div>
+
+                    <div class="grupo-campo" id="campo-direccion">
+                        <label for="txt-direccion">Dirección de Entrega *</label>
+                        <input type="text" id="txt-direccion" required placeholder="Calle, número, departamento...">
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label for="select-pago">Método de Pago *</label>
+                        <select id="select-pago" required>
+                            <option value="" disabled selected>Selecciona una opción</option>
+                            <option value="Efectivo">💵 Efectivo</option>
+                            <option value="Tarjeta">💳 Tarjeta de Débito / Crédito</option>
+                        </select>
+                    </div>
+
+                    <!-- Sección del Cupón -->
+                    <div class="grupo-campo">
+                        <label for="txt-cupon">¿Tienes un cupón de descuento?</label>
+                        <div class="cupon-wrapper">
+                            <input type="text" id="txt-cupon" placeholder="Ej: PROMO10">
+                            <button type="button" class="btn-aplicar-cupon" onclick="validarCupon()">Aplicar</button>
+                        </div>
+                        <span id="msg-cupon" class="msg-feedback"></span>
+                    </div>
+
+                    <button type="submit" class="btn-confirmar-whatsapp">
+                        🚀 Confirmar y Enviar por WhatsApp
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
 </body>
