@@ -313,10 +313,8 @@ function enviarPedidoWhatsApp() {
     window.open(`https://wa.me/${numeroWA}?text=${encodeURIComponent(textoMensaje)}`, '_blank');
 }
 
-
 // Ejecutar carga al abrir la app
 cargarDatos();
-
 
 
 // MODAL
@@ -332,7 +330,6 @@ function abrirCheckout() {
     const config = datosApp.configuracion;
     
     // 1. Validar si el negocio hace envíos a domicilio
-    // Si no está definido en Sheets, asumimos por defecto que "SI" hace envíos
     const haceEnvios = config.hace_envios ? config.hace_envios.toUpperCase().trim() : "SI";
     
     const radioDelivery = document.querySelector('input[value="delivery"]');
@@ -341,7 +338,7 @@ function abrirCheckout() {
 
     if (haceEnvios === "NO") {
         // Forzamos a que esté seleccionado Retiro en Local
-        radioRetiro.checked = true;
+        if (radioRetiro) radioRetiro.checked = true;
         // Deshabilitamos la opción de delivery
         if (radioDelivery) radioDelivery.disabled = true;
         // Mostramos el mensaje de advertencia
@@ -349,9 +346,9 @@ function abrirCheckout() {
             avisoNoEnvios.innerText = "⚠️ Este negocio no hace envíos a domicilio.";
             avisoNoEnvios.style.display = "block";
         }
-        // Ocultamos el campo de dirección de inmediato
-        cambiarTipoEntrega('retiro');
-        return; // Detenemos la ejecución aquí ya que cambiarTipoEntrega volverá a llamar a abrirCheckout de forma segura
+        
+        // CORRECCIÓN: Pasamos 'false' para que oculte la dirección pero NO vuelva a llamar a abrirCheckout
+        cambiarTipoEntrega('retiro', false);
     } else {
         // Si hace envíos, nos aseguramos de habilitar el botón de delivery por si estaba bloqueado
         if (radioDelivery) radioDelivery.disabled = false;
@@ -369,7 +366,10 @@ function abrirCheckout() {
     // 3. Evaluar costo de envío y envío gratis
     const costoEnvioBase = parseFloat(config.costo_envio) || 0;
     const envioGratisDesde = parseFloat(config.envio_gratis_desde) || 999999;
-    const tipoEntregaActivo = document.querySelector('input[name="tipo_entrega"]:checked').value;
+    
+    // Agregado un fallback por si no hay ningún radio seleccionado al iniciar
+    const radioChecked = document.querySelector('input[name="tipo_entrega"]:checked');
+    const tipoEntregaActivo = radioChecked ? radioChecked.value : "retiro";
     const avisoGratisElem = document.getElementById('aviso-envio-gratis');
 
     if (tipoEntregaActivo === "delivery") {
@@ -397,9 +397,9 @@ function abrirCheckout() {
     const filaDesc = document.getElementById('fila-descuento');
     if (descuentoAplicado > 0) {
         document.getElementById('chk-descuento').innerText = `$${montoDescuento.toLocaleString()}`;
-        filaDesc.style.display = "flex";
+        if (filaDesc) filaDesc.style.display = "flex";
     } else {
-        filaDesc.style.display = "none";
+        if (filaDesc) filaDesc.style.display = "none";
     }
 
     // 6. Mostrar el Modal
@@ -410,23 +410,27 @@ function cerrarCheckout() {
     document.getElementById('modal-checkout').style.display = "none";
 }
 
-// Controlar visualmente si se pide dirección o no (Feature 4)
-function cambiarTipoEntrega(tipo) {
+// CORRECCIÓN: Agregado el parámetro 'volverAAbrir' con valor true por defecto
+function cambiarTipoEntrega(tipo, volverAAbrir = true) {
     const campoDireccion = document.getElementById('campo-direccion');
     const inputDireccion = document.getElementById('txt-direccion');
     const filaEnvio = document.getElementById('fila-envio');
 
     if (tipo === 'delivery') {
-        campoDireccion.style.display = "block";
-        inputDireccion.required = true;
-        filaEnvio.style.style = "flex";
+        if (campoDireccion) campoDireccion.style.display = "block";
+        if (inputDireccion) inputDireccion.required = true;
+        if (filaEnvio) filaEnvio.style.display = "flex"; // Corregido: .style.style por .style.display
     } else {
-        campoDireccion.style.display = "none";
-        inputDireccion.required = false;
-        filaEnvio.style.display = "none";
+        if (campoDireccion) campoDireccion.style.display = "none";
+        if (inputDireccion) inputDireccion.required = false;
+        if (filaEnvio) filaEnvio.style.display = "none";
     }
-    // Recalcular el envío y totales basándonos en la nueva opción seleccionada
-    abrirCheckout();
+    
+    // Si viene de una acción manual del usuario, recalculamos llamando a abrirCheckout()
+    // Si viene forzado desde abrirCheckout (porque hace_envios es NO), volverAAbrir es false y frena el bucle.
+    if (volverAAbrir) {
+        abrirCheckout();
+    }
 }
 
 // Validación de cupones (Feature 6)
@@ -438,7 +442,7 @@ function validarCupon() {
     if (codigo === "") {
         descuentoAplicado = 0;
         cuponValidoActivo = "";
-        msgCupon.innerText = "";
+        if (msgCupon) msgCupon.innerText = "";
         abrirCheckout();
         return;
     }
@@ -447,13 +451,17 @@ function validarCupon() {
     if (datosApp.cupones[codigo] !== undefined) {
         descuentoAplicado = datosApp.cupones[codigo];
         cuponValidoActivo = codigo;
-        msgCupon.style.color = "#27ae60";
-        msgCupon.innerText = `¡Cupón válido! Obtienes un ${(descuentoAplicado * 100)}% de desc.`;
+        if (msgCupon) {
+            msgCupon.style.color = "#27ae60";
+            msgCupon.innerText = `¡Cupón válido! Obtienes un ${(descuentoAplicado * 100)}% de desc.`;
+        }
     } else {
         descuentoAplicado = 0;
         cuponValidoActivo = "";
-        msgCupon.style.color = "#e74c3c";
-        msgCupon.innerText = "El cupón ingresado no existe o expiró.";
+        if (msgCupon) {
+            msgCupon.style.color = "#e74c3c";
+            msgCupon.innerText = "El cupón ingresado no existe o expiró.";
+        }
     }
 
     // Re-calculamos los números globales del modal
