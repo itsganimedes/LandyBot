@@ -401,6 +401,83 @@ header p { font-size: 14px; color: #666; margin-bottom: 15px; }
     color: #aaa;
 }
 
+
+
+/* Contenedor para alinear los precios uno al lado del otro si hay oferta */
+.precios-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espacio de separación entre ambos precios */
+    margin-bottom: 10px; /* Espacio antes del contador */
+}
+
+/* El precio normal cuando pasa a estar en oferta */
+.precio-original-tachado {
+    color: #8c8c8c;                 /* Color gris */
+    font-size: 0.85em;              /* Ligeramente más chico que el texto base */
+    text-decoration: line-through;  /* El efecto tachado */
+}
+
+/* Mantenemos tu clase original de precio por si la usás en otra parte */
+.producto-precio {
+    color: #333333;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Clase extra para darle más fuerza visual y tamaño al precio de oferta nuevo */
+.producto-precio.destacado {
+    font-size: 1.2em;               /* Un poquito más grande para resaltar que es oferta */
+    color: #e53e3e;                 /* Opcional: Un tono rojizo/alerta para la oferta, cambialo si preferís seguir con tu color oscuro original */
+    font-weight: 700;
+}
+
+
+
+
+
+/* Etiqueta pequeña de No Disponible */
+.badge-no-disponible {
+    display: inline-block;
+    background-color: #e74c3c;      /* Rojo de alerta */
+    color: #ffffff;
+    font-size: 0.72em;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+/* Modificaciones estéticas para toda la tarjeta cuando está agotada */
+.producto-card.producto-no-disponible {
+    background-color: #fafafa;      /* Fondo levemente más gris */
+}
+
+/* Apaga un poco la imagen para que se note la falta de stock */
+.producto-card.producto-no-disponible .producto-img {
+    filter: grayscale(70%) opacity(50%);
+}
+
+/* Atenúa los textos principales */
+.producto-card.producto-no-disponible .producto-nombre,
+.producto-card.producto-no-disponible .producto-desc {
+    color: #8c8c8c;
+}
+
+/* Estilos automáticos para los botones bloqueados gracias al atributo [disabled] */
+.producto-card.producto-no-disponible .btn-cant:disabled {
+    background-color: #e0e0e0 !important;
+    color: #a6a6a6 !important;
+    border-color: #d1d1d1 !important;
+    cursor: not-allowed !important; /* Muestra el ícono de prohibido con el mouse */
+    opacity: 0.7;
+}
+
+
+
+
 /* Estilo para cuando no hay resultados */
 .sin-resultados {
     text-align: center;

@@ -62,7 +62,7 @@ async function cargarDatos() {
             fetch(URL_CUPONES).then(r => r.text())
         ]);
 
-        // ... (Tu código para procesar pestaña Configuración se mantiene exactamente igual) ...
+
         const arrayConfig = csvAObjetos(resConfig);
         arrayConfig.forEach(fila => {
             const claveOriginal = fila.Propiedad || fila.propiedad || Object.values(fila)[0];
@@ -73,18 +73,31 @@ async function cargarDatos() {
             }
         });
 
-        // ... (Tu código para procesar pestaña Productos se mantiene exactamente igual) ...
+
         datosApp.productos = csvAObjetos(resProductos).map(p => {
-            const id = p.ID || p.id; const precio = p.Precio || p.precio; const disponible = p.Disponible || p.disponible;
-            const categoria = p.Categoria || p.categoria; const nombre = p.Nombre || p.nombre; const descripcion = p.Descripcion || p.descripcion;
+            const id = p.ID || p.id; 
+            const precio = p.Precio || p.precio; 
+            const precioOferta = p.Precio_Oferta || p.precio_oferta || p.Precio_oferta || p.precioOferta; // <- Captura la columna de Sheets
+            const disponible = p.Disponible || p.disponible;
+            const categoria = p.Categoria || p.categoria; 
+            const nombre = p.Nombre || p.nombre; 
+            const descripcion = p.Descripcion || p.descripcion;
             const urlImagen = p.URL_Imagen || p.url_imagen || p.Url_Imagen;
+            
             return {
-                id: parseInt(id), Categoria: categoria, Nombre: nombre, Descripcion: descripcion,
-                precio: parseFloat(precio) || 0, Disponible: disponible ? disponible.toUpperCase() : "NO", URL_Imagen: urlImagen
+                id: parseInt(id), 
+                Categoria: categoria, 
+                Nombre: nombre, 
+                Descripcion: descripcion,
+                precio: parseFloat(precio) || 0, 
+                precio_oferta: parseFloat(precioOferta) || 0, // <- Se guarda correctamente en el objeto de la app
+                Disponible: disponible ? disponible.toUpperCase() : "NO", 
+                URL_Imagen: urlImagen
             };
         });
 
-        // NUEVO: Procesar la pestaña de Cupones personalizados dinámicamente
+        
+        // Procesar la pestaña de Cupones personalizados dinámicamente
         const arrayCupones = csvAObjetos(resCupones);
         arrayCupones.forEach(c => {
             const codigo = c.Codigo || c.codigo;
@@ -175,45 +188,76 @@ function inicializarInterfaz() {
     if (header) header.style.display = 'block';
 }
 
-// MODIFICADO: Ahora acepta un array opcional para poder filtrar
+
+
 function renderizarCatalogo(productosAFiltrar = null) {
     const catalogoContainer = document.getElementById('catalogo');
     if (!catalogoContainer) return;
     
     // Si no pasamos un filtro, usamos todos los productos de datosApp
     const listaProductos = productosAFiltrar || datosApp.productos;
-    const categorias = {};
+    const categories = {};
 
     listaProductos.forEach(p => {
-        if(p.Disponible === "SI") {
-            if (!categorias[p.Categoria]) categorias[p.Categoria] = [];
-            categorias[p.Categoria].push(p);
+        // MODIFICADO: Ahora permitimos que entren tanto los disponibles (SI) como los agotados (NO)
+        if(p.Disponible === "SI" || p.Disponible === "NO") {
+            if (!categories[p.Categoria]) categories[p.Categoria] = [];
+            categories[p.Categoria].push(p);
         }
     });
 
     // Si el objeto de categorías queda vacío, significa que ningún producto coincide
-    if (Object.keys(categorias).length === 0) {
+    if (Object.keys(categories).length === 0) {
         catalogoContainer.innerHTML = `<div class="sin-resultados">😔 No encontramos productos que coincidan con tu búsqueda.</div>`;
         return;
     }
 
     let htmlHTML = '';
-    for (const cat in categorias) {
+    for (const cat in categories) {
         htmlHTML += `<h2 class="categoria-titulo">${cat}</h2>`;
-        categorias[cat].forEach(p => {
-            // Reutilizamos el valor del carrito para mantener el número si el usuario ya sumó algo
+        categories[cat].forEach(p => {
             const cantidadActual = carrito[p.id] || 0;
 
+            // --- NUEVA LÓGICA DE DISPONIBILIDAD ---
+            const noDisponible = p.Disponible === "NO";
+            const claseCardExtra = noDisponible ? 'producto-no-disponible' : '';
+            const etiquetaNoDisponible = noDisponible ? `<span class="badge-no-disponible">No disponible</span>` : '';
+            const atributoDisabled = noDisponible ? 'disabled' : ''; // Bloquea el botón de forma nativa en HTML
+
+            // --- LÓGICA DE PRECIOS CON OFERTA ---
+            const precioNormalNum = parseFloat(p.precio) || 0;
+            const precioOfertaNum = parseFloat(p.precio_oferta) || 0;
+            
+            let preciosHTML = '';
+
+            if (precioOfertaNum > 0) {
+                preciosHTML = `
+                    <div class="precios-wrapper">
+                        <span class="precio-original-tachado">$${precioNormalNum.toLocaleString()}</span>
+                        <span class="producto-precio destacado">$${precioOfertaNum.toLocaleString()}</span>
+                    </div>
+                `;
+            } else {
+                preciosHTML = `
+                    <div class="precios-wrapper">
+                        <span class="producto-precio">$${precioNormalNum.toLocaleString()}</span>
+                    </div>
+                `;
+            }
+
             htmlHTML += `
-                <div class="producto-card">
+                <div class="producto-card ${claseCardExtra}">
                     <div class="producto-info">
+                        ${etiquetaNoDisponible}
                         <h3 class="producto-nombre">${p.Nombre}</h3>
                         <p class="producto-desc">${p.Descripcion}</p>
-                        <span class="producto-precio">$${p.precio.toLocaleString()}</span>
+                        
+                        ${preciosHTML}
+                        
                         <div class="contador-container">
-                            <button class="btn-cant" onclick="modificarCantidad(${p.id}, -1)">-</button>
+                            <button class="btn-cant" onclick="modificarCantidad(${p.id}, -1)" ${atributoDisabled}>-</button>
                             <span class="cantidad-num" id="cant-${p.id}">${cantidadActual}</span>
-                            <button class="btn-cant" onclick="modificarCantidad(${p.id}, 1)">+</button>
+                            <button class="btn-cant" onclick="modificarCantidad(${p.id}, 1)" ${atributoDisabled}>+</button>
                         </div>
                     </div>
                     <img class="producto-img" src="${p.URL_Imagen}" alt="${p.Nombre}">
@@ -224,7 +268,8 @@ function renderizarCatalogo(productosAFiltrar = null) {
     catalogoContainer.innerHTML = htmlHTML;
 }
 
-// NUEVA FUNCIÓN: Se ejecuta en cada letra que escribe el usuario (oninput)
+
+// Se ejecuta en cada letra que escribe el usuario (oninput)
 function filtrarCatalogo() {
     const input = document.getElementById('input-busqueda');
     if (!input) return;
@@ -275,7 +320,10 @@ function actualizarBarraPedido() {
     for (const id in carrito) {
         const producto = datosApp.productos.find(p => p.id == id);
         if (producto) {
-            total += producto.precio * carrito[id];
+            // DETECTAR PRECIO ACTIVO (Normal u Oferta)
+            const precioActivo = producto.precio_oferta > 0 ? producto.precio_oferta : producto.precio;
+            
+            total += precioActivo * carrito[id];
             totalItems += carrito[id];
         }
     }
@@ -301,8 +349,11 @@ function enviarPedidoWhatsApp() {
     for (const id in carrito) {
         const producto = datosApp.productos.find(p => p.id == id);
         if (producto) {
-            total += producto.precio * carrito[id];
-            textoMensaje += `• ${carrito[id]}x _${producto.Nombre}_ ($${producto.precio.toLocaleString()} c/u)\n`;
+            // DETECTAR PRECIO ACTIVO
+            const precioActivo = producto.precio_oferta > 0 ? producto.precio_oferta : producto.precio;
+            
+            total += precioActivo * carrito[id];
+            textoMensaje += `• ${carrito[id]}x _${producto.Nombre}_ ($${precioActivo.toLocaleString()} c/u)\n`;
         }
     }
 
@@ -359,7 +410,11 @@ function abrirCheckout() {
     let subtotal = 0;
     for (const id in carrito) {
         const producto = datosApp.productos.find(p => p.id == id);
-        if (producto) subtotal += producto.precio * carrito[id];
+        if (producto) {
+            // DETECTAR PRECIO ACTIVO
+            const precioActivo = producto.precio_oferta > 0 ? producto.precio_oferta : producto.precio;
+            subtotal += precioActivo * carrito[id];
+        }
     }
     subtotalGlobal = subtotal;
 
