@@ -404,10 +404,12 @@ function abrirCheckout() {
 
     // 6. Mostrar el Modal
     document.getElementById('modal-checkout').style.display = "flex";
+    document.body.style.overflowY = "hidden";
 }
 
 function cerrarCheckout() {
     document.getElementById('modal-checkout').style.display = "none";
+    document.body.style.overflowY = "auto";
 }
 
 // CORRECCIÓN: Agregado el parámetro 'volverAAbrir' con valor true por defecto
