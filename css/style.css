@@ -293,9 +293,8 @@ header p { font-size: 14px; color: #666; margin-bottom: 15px; }
     align-items: center;
 }
 
-#up_div span,p,i {
+#up_div span,#up_div p,#up_div i {
     color: var(--color-primario); 
-    
     filter: invert(1) hue-rotate(180deg); 
 }
 
