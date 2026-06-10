@@ -358,7 +358,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 /* --- ESTILOS DEL FOOTER --- */
 .site-footer {
     background-color: var(--color-secundario, #1D3557);
-    color: #FFF;
+    color: var(--color-fondo);
     text-align: center;
     padding: 30px 20px;
     margin-top: 50px;
@@ -382,6 +382,10 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
     border-radius: 20px;
     font-size: 0.8rem;
     letter-spacing: 0.5px;
+}
+
+#nss_link{
+    color: var(--color-fondo);
 }
 
 /* --- BOTÓN FLOTANTE DE WHATSAPP --- */
@@ -542,9 +546,17 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
     opacity: 0.8;
 }
 
+.logo_text{
+    width: 3%;
+}
+
 /* Evitar que el botón tape la barra de pedido si está abierta */
 @media (max-width: 768px) {
     .whatsapp-float {
         bottom: 85px;
+    }
+
+    .logo_text{
+        width: 10%;
     }
 }
