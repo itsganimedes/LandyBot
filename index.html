@@ -29,6 +29,7 @@
             <span id="horario-negocio" class="info-badge"></span>
             <span id="direccion-negocio" class="info-badge"></span>
         </div>
+        <p id="demora-negocio"></p>
     </header>
 
     <!-- Buscador de productos -->
@@ -135,6 +136,22 @@
                             <option value="Efectivo">💵 Efectivo</option>
                             <option value="Tarjeta">💳 Tarjeta de Débito / Crédito</option>
                         </select>
+                    </div>
+
+                    <!-- NUEVO: Contenedor dinámico para mostrar el Alias de transferencia -->
+                    <div class="grupo-campo" id="contenedor-alias" style="display: none; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
+                        <label style="font-weight: bold; margin-bottom: 6px; display: block; color: #475569; font-size: 0.9rem;">📍 Datos de Transferencia (Alias):</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="text" id="lbl-alias" readonly style="flex: 1; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; font-weight: bold; text-align: center; color: #1e293b;" value="">
+                            <button type="button" id="btn-copiar-alias" onclick="copiarAlias()" style="padding: 8px 14px; background: #2563eb; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap; transition: background 0.2s;">📋 Copiar</button>
+                        </div>
+                        <span id="msg-copiado" style="display: none; color: #16a34a; font-size: 0.75rem; margin-top: 5px; font-weight: bold; text-align: center;">¡Copiado al portapapeles con éxito! 🎉</span>
+                    </div>
+
+                    <!-- Campo de Aclaraciones / Notas -->
+                    <div class="grupo-campo">
+                        <label for="txt-notas">Notas o Especificaciones (Opcional)</label>
+                        <textarea id="txt-notas" rows="2" placeholder="Ej: Sin cebolla, aderezos aparte, traer cambio de $5.000..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical;"></textarea>
                     </div>
 
                     <!-- Sección del Cupón -->

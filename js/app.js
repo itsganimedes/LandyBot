@@ -151,6 +151,18 @@ function inicializarInterfaz() {
     
     const elemEslogan = document.getElementById('eslogan-negocio');
     if (elemEslogan) elemEslogan.innerText = config.eslogan || "";
+
+    const demoraValor = config.demora ? config.demora.trim() : "";
+    const elemDemora = document.getElementById('demora-negocio');
+
+    if (elemDemora) {
+        if (demoraValor !== "") {
+            elemDemora.innerText = '⚠️ ATENCIÓN: Demora de ' + demoraValor;
+            elemDemora.style.display = "block";
+        } else {
+            elemDemora.style.display = "none";
+        }
+    }
     
     const elemHorario = document.getElementById('horario-negocio');
     if (elemHorario) elemHorario.innerText = "🕒 " + (config.horario || "Consultar");
@@ -357,6 +369,13 @@ function enviarPedidoWhatsApp() {
         }
     }
 
+    // CAPTURAR Y AGREGAR NOTAS SI EXISTEN
+    const notasInput = document.getElementById('txt-notas');
+    const notas = notasInput ? notasInput.value.trim() : "";
+    if (notas) {
+        textoMensaje += `\n💬 *Notas:* _${notas}_\n`;
+    }
+
     textoMensaje += `\n*Total a Pagar:* $${total.toLocaleString()}\n\n`;
     textoMensaje += `¿Me confirman el pedido? 😊`;
 
@@ -388,20 +407,14 @@ function abrirCheckout() {
     const avisoNoEnvios = document.getElementById('aviso-no-envios');
 
     if (haceEnvios === "NO") {
-        // Forzamos a que esté seleccionado Retiro en Local
         if (radioRetiro) radioRetiro.checked = true;
-        // Deshabilitamos la opción de delivery
         if (radioDelivery) radioDelivery.disabled = true;
-        // Mostramos el mensaje de advertencia
         if (avisoNoEnvios) {
             avisoNoEnvios.innerText = "⚠️ Este negocio no hace envíos a domicilio.";
             avisoNoEnvios.style.display = "block";
         }
-        
-        // CORRECCIÓN: Pasamos 'false' para que oculte la dirección pero NO vuelva a llamar a abrirCheckout
         cambiarTipoEntrega('retiro', false);
     } else {
-        // Si hace envíos, nos aseguramos de habilitar el botón de delivery por si estaba bloqueado
         if (radioDelivery) radioDelivery.disabled = false;
         if (avisoNoEnvios) avisoNoEnvios.style.display = "none";
     }
@@ -411,7 +424,6 @@ function abrirCheckout() {
     for (const id in carrito) {
         const producto = datosApp.productos.find(p => p.id == id);
         if (producto) {
-            // DETECTAR PRECIO ACTIVO
             const precioActivo = producto.precio_oferta > 0 ? producto.precio_oferta : producto.precio;
             subtotal += precioActivo * carrito[id];
         }
@@ -422,7 +434,6 @@ function abrirCheckout() {
     const costoEnvioBase = parseFloat(config.costo_envio) || 0;
     const envioGratisDesde = parseFloat(config.envio_gratis_desde) || 999999;
     
-    // Agregado un fallback por si no hay ningún radio seleccionado al iniciar
     const radioChecked = document.querySelector('input[name="tipo_entrega"]:checked');
     const tipoEntregaActivo = radioChecked ? radioChecked.value : "retiro";
     const avisoGratisElem = document.getElementById('aviso-envio-gratis');
@@ -457,6 +468,21 @@ function abrirCheckout() {
         if (filaDesc) filaDesc.style.display = "none";
     }
 
+    // --- NUEVO: CONTROL VISUAL DEL ALIAS DESDE GOOGLE SHEETS ---
+    const contenedorAlias = document.getElementById('contenedor-alias');
+    const inputAlias = document.getElementById('lbl-alias');
+    // Busca "alias" en minúsculas debido al formateador .toLowerCase().trim() que tienes en cargarDatos()
+    const aliasValor = config.alias ? config.alias.trim() : "";
+
+    if (contenedorAlias && inputAlias) {
+        if (aliasValor !== "") {
+            inputAlias.value = aliasValor;
+            contenedorAlias.style.display = "block";
+        } else {
+            contenedorAlias.style.display = "none";
+        }
+    }
+
     // 6. Mostrar el Modal
     document.getElementById('modal-checkout').style.display = "flex";
     document.body.style.overflowY = "hidden";
@@ -467,7 +493,6 @@ function cerrarCheckout() {
     document.body.style.overflowY = "auto";
 }
 
-// CORRECCIÓN: Agregado el parámetro 'volverAAbrir' con valor true por defecto
 function cambiarTipoEntrega(tipo, volverAAbrir = true) {
     const campoDireccion = document.getElementById('campo-direccion');
     const inputDireccion = document.getElementById('txt-direccion');
@@ -525,7 +550,7 @@ function validarCupon() {
     abrirCheckout();
 }
 
-// PROCESAR TODO Y ENVIAR EL MENSAJE FINAL (Feature 4, 5 y 6 combinadas)
+// PROCESAR TODO Y ENVIAR EL MENSAJE FINAL
 function procesarYEnviar(event) {
     event.preventDefault(); // Evitar que recargue la página
 
@@ -547,12 +572,21 @@ function procesarYEnviar(event) {
     textoMensaje += `───────────────────\n\n`;
     textoMensaje += `🛒 *Detalle del Pedido:*\n`;
 
-    // Listar los productos
+    // Listar los productos con el precio correcto (Normal u Oferta)
     for (const id in carrito) {
         const producto = datosApp.productos.find(p => p.id == id);
         if (producto) {
-            textoMensaje += `• ${carrito[id]}x _${producto.Nombre}_ ($${producto.precio.toLocaleString()} c/u)\n`;
+            // DETECTAR PRECIO ACTIVO
+            const precioActivo = producto.precio_oferta > 0 ? producto.precio_oferta : producto.precio;
+            textoMensaje += `• ${carrito[id]}x _${producto.Nombre}_ ($${precioActivo.toLocaleString()} c/u)\n`;
         }
+    }
+
+    // --- NUEVO: CAPTURAR Y AGREGAR NOTAS AL DETALLE ---
+    const notasInput = document.getElementById('txt-notas');
+    const notas = notasInput ? notasInput.value.trim() : "";
+    if (notas) {
+        textoMensaje += `\n💬 *Notas:* _${notas}_\n`;
     }
 
     textoMensaje += `\n───────────────────\n`;
@@ -574,6 +608,35 @@ function procesarYEnviar(event) {
     const numeroWA = config.whatsapp || "";
     window.open(`https://wa.me/${numeroWA}?text=${encodeURIComponent(textoMensaje)}`, '_blank');
     
-    // Opcional: Cerrar el modal tras enviar
+    // Cerrar el modal tras enviar
     cerrarCheckout();
+}
+
+// Función para copiar el Alias al portapapeles de manera sencilla
+function copiarAlias() {
+    const inputAlias = document.getElementById('lbl-alias');
+    const btnCopiar = document.getElementById('btn-copiar-alias');
+    const msgCopiado = document.getElementById('msg-copiado');
+    
+    if (inputAlias && inputAlias.value) {
+        navigator.clipboard.writeText(inputAlias.value).then(() => {
+            // Cambios de estado en éxito
+            if (btnCopiar) {
+                btnCopiar.innerText = "✅ ¡Listo!";
+                btnCopiar.style.background = "#16a34a";
+            }
+            if (msgCopiado) msgCopiado.style.display = "block";
+            
+            // Revertir a la normalidad en 2 segundos
+            setTimeout(() => {
+                if (btnCopiar) {
+                    btnCopiar.innerText = "📋 Copiar";
+                    btnCopiar.style.background = "#2563eb";
+                }
+                if (msgCopiado) msgCopiado.style.display = "none";
+            }, 2000);
+        }).catch(err => {
+            console.error("No se pudo copiar el texto de forma automática: ", err);
+        });
+    }
 }
