@@ -97,6 +97,7 @@ header h1 { font-size: 24px; color: var(--color-texto); margin-bottom: 5px; }
 header p { font-size: 14px; color: var(--color-texto); background-color: var(--color-fondo); width: fit-content; padding: 0.3rem 2rem; border-radius: 8px; margin:  15px auto; }
 .info-badge {
     display: inline-block; background-color: #f0f0f0;
+    color: #111111;
     padding: 5px 12px; border-radius: 20px;
     font-size: 12px; font-weight: 600; margin: 2px;
 }
@@ -104,7 +105,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 /* Catalogo */
 .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
 .categoria-titulo {
-    font-size: 18px; color: var(--color-secundario);
+    font-size: 18px; color: var(--color-texto);
     margin: 25px 0 15px 0; border-left: 4px solid var(--color-primario);
     padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;
 }
@@ -115,7 +116,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
     border: 1px solid var(--color-primario);
 }
 .producto-info { flex: 1; padding-right: 10px; }
-.producto-nombre { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.producto-nombre { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #111111; }
 .producto-desc { font-size: 13px; color: #777; margin-bottom: 8px; line-height: 1.3; }
 .producto-precio { font-size: 16px; font-weight: 700; color: var(--color-primario); }
 .producto-img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
@@ -358,7 +359,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 /* --- ESTILOS DEL FOOTER --- */
 .site-footer {
     background-color: var(--color-secundario, #1D3557);
-    color: var(--color-fondo);
+    color: var(--color-texto);
     text-align: center;
     padding: 30px 20px;
     margin-top: 50px;
@@ -376,7 +377,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 }
 .site-footer .creado-por span {
     font-weight: bold;
-    color: #FFF;
+    color: var(--color-texto);
     background: var(--color-primario, #E63946);
     padding: 3px 8px;
     border-radius: 20px;
@@ -385,7 +386,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 }
 
 #nss_link{
-    color: var(--color-fondo);
+    color: var(--color-texto);
 }
 
 /* --- BOTÓN FLOTANTE DE WHATSAPP --- */
