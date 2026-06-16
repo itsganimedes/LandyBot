@@ -218,15 +218,29 @@ function renderizarCatalogo(productosAFiltrar = null) {
         }
     });
 
+    const catKeys = Object.keys(categories);
+
     // Si el objeto de categorías queda vacío, significa que ningún producto coincide
-    if (Object.keys(categories).length === 0) {
+    if (catKeys.length === 0) {
         catalogoContainer.innerHTML = `<div class="sin-resultados">😔 No encontramos productos que coincidan con tu búsqueda.</div>`;
         return;
     }
 
     let htmlHTML = '';
-    for (const cat in categories) {
-        htmlHTML += `<h2 class="categoria-titulo">${cat}</h2>`;
+
+    // Navegación rápida (pills) para saltar entre categorías, solo si hay más de una
+    if (catKeys.length > 1) {
+        htmlHTML += `<nav class="nav-categorias" aria-label="Categorías">`;
+        catKeys.forEach(cat => {
+            htmlHTML += `<button type="button" class="pill-categoria" onclick="irACategoria('${slugify(cat)}')">${cat}</button>`;
+        });
+        htmlHTML += `</nav>`;
+    }
+
+    catKeys.forEach(cat => {
+        const catId = slugify(cat);
+        let cardsHTML = '';
+
         categories[cat].forEach(p => {
             const cantidadActual = carrito[p.id] || 0;
 
@@ -241,8 +255,10 @@ function renderizarCatalogo(productosAFiltrar = null) {
             const precioOfertaNum = parseFloat(p.precio_oferta) || 0;
             
             let preciosHTML = '';
+            let badgeOferta = '';
 
             if (precioOfertaNum > 0) {
+                badgeOferta = !noDisponible ? `<span class="badge-oferta">Oferta</span>` : '';
                 preciosHTML = `
                     <div class="precios-wrapper">
                         <span class="precio-original-tachado">$${precioNormalNum.toLocaleString()}</span>
@@ -257,27 +273,78 @@ function renderizarCatalogo(productosAFiltrar = null) {
                 `;
             }
 
-            htmlHTML += `
+            cardsHTML += `
                 <div class="producto-card ${claseCardExtra}">
-                    <div class="producto-info">
+                    <div class="producto-img-wrapper">
+                        <img class="producto-img" src="${p.URL_Imagen}" alt="${p.Nombre}" loading="lazy">
+                        ${badgeOferta}
                         ${etiquetaNoDisponible}
+                    </div>
+                    <div class="producto-info">
                         <h3 class="producto-nombre">${p.Nombre}</h3>
                         <p class="producto-desc">${p.Descripcion}</p>
-                        
+
                         ${preciosHTML}
-                        
+
                         <div class="contador-container">
                             <button class="btn-cant" onclick="modificarCantidad(${p.id}, -1)" ${atributoDisabled}>-</button>
                             <span class="cantidad-num" id="cant-${p.id}">${cantidadActual}</span>
                             <button class="btn-cant" onclick="modificarCantidad(${p.id}, 1)" ${atributoDisabled}>+</button>
                         </div>
                     </div>
-                    <img class="producto-img" src="${p.URL_Imagen}" alt="${p.Nombre}">
                 </div>
             `;
         });
-    }
+
+        htmlHTML += `
+            <section class="categoria-seccion" id="seccion-${catId}">
+                <div class="categoria-header">
+                    <h2 class="categoria-titulo">${cat}</h2>
+                    <div class="categoria-controles">
+                        <button type="button" class="btn-flecha" onclick="moverCarrusel('${catId}', -1)" aria-label="Ver productos anteriores">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn-flecha" onclick="moverCarrusel('${catId}', 1)" aria-label="Ver más productos">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="carrusel-wrapper">
+                    <div class="carrusel-pista" id="carrusel-${catId}">
+                        ${cardsHTML}
+                    </div>
+                </div>
+            </section>
+        `;
+    });
+
     catalogoContainer.innerHTML = htmlHTML;
+}
+
+// Convierte el nombre de una categoría en un id seguro para usar en el DOM
+function slugify(texto) {
+    return (texto || 'cat')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'cat';
+}
+
+// Desplaza el carrusel de una categoría hacia adelante o atrás
+function moverCarrusel(catId, direccion) {
+    const pista = document.getElementById(`carrusel-${catId}`);
+    if (!pista) return;
+    const primeraCard = pista.querySelector('.producto-card');
+    const ancho = primeraCard ? primeraCard.getBoundingClientRect().width + 14 : 180;
+    pista.scrollBy({ left: direccion * ancho * 2, behavior: 'smooth' });
+}
+
+// Salta suavemente a la sección de una categoría (usado por las pills de navegación)
+function irACategoria(catId) {
+    const seccion = document.getElementById(`seccion-${catId}`);
+    if (!seccion) return;
+    seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 
@@ -551,6 +618,7 @@ function validarCupon() {
 }
 
 // PROCESAR TODO Y ENVIAR EL MENSAJE FINAL
+// PROCESAR TODO Y ENVIAR EL MENSAJE FINAL
 function procesarYEnviar(event) {
     event.preventDefault(); // Evitar que recargue la página
 
@@ -572,17 +640,25 @@ function procesarYEnviar(event) {
     textoMensaje += `───────────────────\n\n`;
     textoMensaje += `🛒 *Detalle del Pedido:*\n`;
 
+    // --- NUEVO: PREPARAR EL ARRAY DE PRODUCTOS REALES PARA GOOGLE SHEETS ---
+    let productosParaGuardar = [];
+
     // Listar los productos con el precio correcto (Normal u Oferta)
     for (const id in carrito) {
         const producto = datosApp.productos.find(p => p.id == id);
         if (producto) {
-            // DETECTAR PRECIO ACTIVO
             const precioActivo = producto.precio_oferta > 0 ? producto.precio_oferta : producto.precio;
             textoMensaje += `• ${carrito[id]}x _${producto.Nombre}_ ($${precioActivo.toLocaleString()} c/u)\n`;
+            
+            // Agregamos el producto real a nuestra lista de Base de Datos
+            productosParaGuardar.push({
+                id: parseInt(id),
+                cantidad: parseInt(carrito[id])
+            });
         }
     }
 
-    // --- NUEVO: CAPTURAR Y AGREGAR NOTAS AL DETALLE ---
+    // --- CAPTURAR Y AGREGAR NOTAS AL DETALLE ---
     const notasInput = document.getElementById('txt-notas');
     const notas = notasInput ? notasInput.value.trim() : "";
     if (notas) {
