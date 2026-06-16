@@ -349,7 +349,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
     position: absolute;
     width: 70px;
     height: 10px;
-    background: var(--color-secundario, #1D3557);
+    background: var(--color-header, #1D3557);
     top: 25px;
     left: 0;
     border-radius: 4px;
@@ -359,7 +359,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 .robot-body {
     width: 40px;
     height: 20px;
-    background: var(--color-secundario, #1D3557);
+    background: var(--color-header, #1D3557);
     border-radius: 6px 6px 0 0;
     position: absolute;
     bottom: 0;
