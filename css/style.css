@@ -493,7 +493,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
 }
 
 #up_div span,#up_div p,#up_div i {
-    color: var(--color-primario); 
+    color: var(--color-texto); 
     filter: invert(1) hue-rotate(180deg); 
 }
 
