@@ -436,7 +436,7 @@ header p { font-size: 14px; color: var(--color-texto); background-color: var(--c
     align-items: center;
 }
 
-.modal-header h3 { margin: 0; font-size: 1.2rem; color: var(--color-texto, #333); }
+.modal-header h3 { margin: 0; font-size: 1.2rem; color: var(#000000, #333); }
 
 .btn-cerrar-modal {
     background: none;
